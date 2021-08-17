@@ -10,7 +10,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--solver',
                     type=str,
                     default='Full MG',
-                    choices=['Full MG', 'Matfree FMG', 'Telescoped matfree FMG'],
+                    choices=['CG + AMG', 'CG + full GMG', 'Matfree CG + telescoped full GMG'],
                     help='Solver key')
 parser.add_argument('--telescope',
                     type=int,
@@ -27,11 +27,14 @@ csvfile = ResultsCSV('strong.csv')
 problem, u_h, truth = make_problem(baseN, nref, degree)
 
 # We don't want to look at LU or CG + MGV strong scaling
-del solver_dict['LU']
-del solver_dict['CG + MGV']
-solver_dict['Telescoped matfree FMG'] = {
+solver_dict['CG + AMG'] = {
+    "ksp_type": "cg",
+    "pc_type": "gamg",
+    'pc_gamg_threshold': -1
+}
+solver_dict['Matfree CG + telescoped full GMG'] = {
     "mat_type": "matfree",
-    "ksp_type": "preonly",
+    "ksp_type": "cg",
     "pc_type": "mg",
     "pc_mg_type": "full",
     "mg_levels_ksp_type": "chebyshev",
@@ -61,4 +64,4 @@ t = time() - t
 recerror = errornorm(truth, u_h)
 dofs = u_h.function_space().dim()
 csvfile.record_result(baseN, nref, degree, key, recerror, t, dofs)
-parprint(f'CPUs: {COMM_WORLD.size:4d} BaseN: {baseN:3d} Solver: {key:25} Error: {recerror:8.5f} Time: {t:8.5f} s')
+parprint(f'CPUs: {COMM_WORLD.size:4d} BaseN: {baseN:3d} Solver: {key:35} Error: {recerror:8.5e} Time: {t:8.5f} s')

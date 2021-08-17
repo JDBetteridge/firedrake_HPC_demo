@@ -53,7 +53,7 @@ def make_problem(Nx, Nref, degree):
     u = TrialFunction(V)
     v = TestFunction(V)
 
-    bcs = DirichletBC(V, zero(), (1, 2, 3, 4, 5, 6))
+    bcs = DirichletBC(V, zero(), ("on_boundary", ))
 
     x, y, z = SpatialCoordinate(mesh)
 
@@ -73,7 +73,7 @@ def make_problem(Nx, Nref, degree):
 
 
 lu_solver = "mumps"
-smooth_steps = 10
+smooth_steps = 2
 
 # Define (quiet) solver options
 lu_mumps = {
@@ -82,13 +82,18 @@ lu_mumps = {
     "pc_factor_mat_solver_type": lu_solver
 }
 
+amg = {
+    "ksp_type": "cg",
+    "pc_type": "gamg"
+}
+
 vmg = {
     "ksp_type": "cg",
-    "pc_type": "mg",
+    "pc_type": "mg"
 }
 
 fmg = {
-    "ksp_type": "preonly",
+    "ksp_type": "cg",
     "pc_type": "mg",
     "pc_mg_type": "full",
     "mg_levels_ksp_type": "chebyshev",
@@ -98,27 +103,10 @@ fmg = {
     "mg_coarse_pc_factor_mat_solver_type": lu_solver
 }
 
-fmg_matfree = {
-    "mat_type": "matfree",
-    "ksp_type": "preonly",
-    "pc_type": "mg",
-    "pc_mg_type": "full",
-    "mg_levels_ksp_type": "chebyshev",
-    "mg_levels_ksp_max_it": smooth_steps,
-    "mg_levels_pc_type": "jacobi",
-    "mg_coarse_pc_type": "python",
-    "mg_coarse_pc_python_type": "firedrake.AssembledPC",
-    "mg_coarse_assembled": {
-        "mat_type": "aij",
-        "pc_type": "lu",
-        "pc_factor_mat_solver_type": lu_solver
-    }
-}
-
 telescope_factor = 1  # Set to number of nodes!
 fmg_matfree_telescope = {
     "mat_type": "matfree",
-    "ksp_type": "preonly",
+    "ksp_type": "cg",
     "pc_type": "mg",
     "pc_mg_type": "full",
     "mg_levels_ksp_type": "chebyshev",
@@ -138,8 +126,8 @@ fmg_matfree_telescope = {
 
 solver_dict = {
     'LU': lu_mumps,
-    'CG + MGV': vmg,
-    'Full MG': fmg,
-    'Matfree FMG': fmg_matfree,
-    'Telescoped matfree FMG': fmg_matfree_telescope
+    'CG + AMG': amg,
+    'CG + GMG V-cycle': vmg,
+    'CG + full GMG': fmg,
+    'Matfree CG + telescoped full GMG': fmg_matfree_telescope
 }

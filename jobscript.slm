@@ -4,10 +4,11 @@
 #SBATCH -J firedrake
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=1
+#SBATCH --qos=standard
 #SBATCH -t 0:10:00
 
-export VENV_NAME=firedrake_08_2021
-export WORK=/work/e682/shared/firedrake_tarballs/firedrake_08_2021/
+export VENV_NAME=firedrake64_08_2021
+export WORK=/work/e682/shared/firedrake_tarballs/firedrake64_08_2021/
 export FIREDRAKE_TEMP=firedrake_tmp
 export LOCAL_BIN=$WORK
 
@@ -16,8 +17,8 @@ myScript="HPC_demo.py"
 module load epcc-job-env
 
 # Activate Firedrake venv (activate once on first node, extract once per node)
-source $LOCAL_BIN/firedrake_activate.sh
-srun --ntasks-per-node 1 $LOCAL_BIN/firedrake_activate.sh
+source $LOCAL_BIN/firedrake64_activate.sh
+srun --ntasks-per-node 1 $LOCAL_BIN/firedrake64_activate.sh
 
 # Run Firedrake script
 srun --ntasks-per-node 128 $VIRTUAL_ENV/bin/python ${myScript}
